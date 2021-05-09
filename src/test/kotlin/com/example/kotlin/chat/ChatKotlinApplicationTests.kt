@@ -45,8 +45,8 @@ class ChatKotlinApplicationTests @Autowired constructor(
         val savedMessages = messageRepository.saveAll(
             listOf(
                 Message("*testMessage*", ContentType.PLAIN, twoSecondBeforeNow, "test", "http://test.com"),
-                Message("*testMessage2*", ContentType.PLAIN, secondBeforeNow, "test1", "http://test.com"),
-                Message("*testMessage3*", ContentType.PLAIN, now, "test2", "http://test.com")
+                Message("**testMessage2**", ContentType.MARKDOWN, secondBeforeNow, "test1", "http://test.com"),
+                Message("`testMessage3`", ContentType.MARKDOWN, now, "test2", "http://test.com")
             )
         )
         lastMessageId = savedMessages.first().id ?: ""
@@ -82,22 +82,19 @@ class ChatKotlinApplicationTests @Autowired constructor(
                     )
                 )
         }
-        assertThat(messages?.map {
-            with(it) {
-                copy(id = null, sent = sent.truncatedTo(MILLIS))
-            }
-        }).containsSequence(
-            MessageVM(
-                "*testMessage2*",
-                UserVM("test1", URL("http://test.com")),
-                now.minusSeconds(1).truncatedTo(MILLIS)
-            ),
-            MessageVM(
-                "*testMessage3*",
-                UserVM("test2", URL("http://test.com")),
-                now.truncatedTo(MILLIS)
+        assertThat(messages?.map { it.prepareForTesting() })
+            .containsSequence(
+                MessageVM(
+                    "<body><p><strong>testMessage2</strong></p></body>",
+                    UserVM("test1", URL("http://test.com")),
+                    now.minusSeconds(1).truncatedTo(MILLIS)
+                ),
+                MessageVM(
+                    "<body><p><code>testMessage3</code></p></body>",
+                    UserVM("test2", URL("http://test.com")),
+                    now.truncatedTo(MILLIS)
+                )
             )
-        )
     }
 
     @Test
@@ -114,11 +111,11 @@ class ChatKotlinApplicationTests @Autowired constructor(
         messageRepository.findAll()
             .first { it.content.contains("HelloWorld") }
             .apply {
-                assertThat(this.copy(id = null, sent = sent.truncatedTo(MILLIS)))
+                assertThat(this.prepareForTesting())
                     .isEqualTo(
                         Message(
                             "`HelloWorld`",
-                            ContentType.PLAIN,
+                            ContentType.MARKDOWN,
                             now.plusSeconds(1).truncatedTo(MILLIS),
                             "test",
                             "http://test.com"

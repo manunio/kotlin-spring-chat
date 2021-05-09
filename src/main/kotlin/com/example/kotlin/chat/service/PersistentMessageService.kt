@@ -2,6 +2,7 @@ package com.example.kotlin.chat.service
 
 import com.example.kotlin.chat.asDomainObject
 import com.example.kotlin.chat.asViewModel
+import com.example.kotlin.chat.mapToViewModel
 import com.example.kotlin.chat.repository.ContentType
 import com.example.kotlin.chat.repository.Message
 import com.example.kotlin.chat.repository.MessageRepository
@@ -14,12 +15,11 @@ import java.net.URL
 @Primary
 class PersistentMessageService(val messageRepository: MessageRepository) : MessageService {
     override fun latest(): List<MessageVM> =
-        messageRepository.findLatest()
-            .map { it.asViewModel() }
+        messageRepository.findLatest().mapToViewModel()
 
     override fun after(messageId: String): List<MessageVM> {
         return messageRepository.findLatest(messageId)
-            .map { it.asViewModel() }
+            .mapToViewModel()
     }
 
     override fun post(message: MessageVM) {
